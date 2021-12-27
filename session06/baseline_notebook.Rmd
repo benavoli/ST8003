@@ -1,0 +1,71 @@
+---
+title: "Session 5: linear regression"
+output: html_notebook
+---
+
+# Load the dataset 
+The collected dataset includes information about houses on sale in the Dublin area. Each house is an entry of the dataset: a mixed-type data comprising of numerical, categorical and textual data.
+
+The goal is to combine both numerical/categorical features and textual features to predict if the house-price is above or below 550,000
+
+The house price is determined by some factors like
+
+* location (area),
+* surface (size),
+* the number of bedrooms,
+* the number of bathrooms,
+* property type,
+* house-features (size of the windows, construction material).
+
+The physical attributes of the house such as the number of bedrooms, the number of bathrooms, the surface of the house, property type, and its location are information that is directly accessible from the dataset.
+Instead, the house-features can (sometimes only indirectly) be inferred from the house-description, house-facility and house-features.
+You can download the dataset from this url:
+https://github.com/benavoli/ST8003/tree/main/session05
+You can see a typical entry in the dataset hereafter
+
+```{r}
+data <- read.csv(file = '../session5/train.csv',sep="," )
+data['pricerange']<-as.vector(data['price']>550000)+0.0# we make a column which is 1 when price 
+#is above 550000 and zero otherwise
+data[1,]
+```
+
+# Data Cleaning, Covariate selection and preprocessing
+We select some of the columns ('bathrooms','beds','surface') we will use as predictors for price
+```{r}
+datasel = data[c('bathrooms','beds','surface','pricerange')]
+datasel = na.omit(datasel)# we remove all the rows including nan
+datasel
+```
+
+# Linear regression
+We now fit linear regression
+```{r}
+model = glm(pricerange ~ bathrooms + beds + surface,  family = "binomial", data = datasel)
+summary(model)
+```
+Is this a good model? Can we use other columns in `data` to improve the model?
+Can we include polynomial and/or interaction terms to improve the model?
+Use the model selection approaches you learned in session 5 and 6 to find a better model.
+
+
+# Unseen data
+You can test the predictive performance of our best model on unseen data
+```{r}
+datatest <- read.csv(file = '../session5/test.csv',sep="," )
+datatest[10:28,3:16]#one of the entries, there are 16 columns, the first two columns are just ids. The price column is not reported. You have to predict the price for all the entries in dataset
+```
+
+Prediction
+```{r}
+predictions <- predict(model,datatest, type="response")
+predictions[1:5]
+```
+these are the predicted probabilities for pricerange to be 1 for 5 houses in the dataset. You can save and submit your best predictions for our internal data science competition. This is the
+code, which uses the threshold 0.5 to predict 1, that is house price above 550000.
+
+```{r}
+write.csv(as.array(predictions>0.5),"name_surname.csv")
+```
+We will use `accuracy score` to evaluate the accuracy of
+your predictions.
