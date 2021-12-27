@@ -1,0 +1,67 @@
+---
+title: "Session 5: linear regression"
+output: html_notebook
+---
+
+# Load the dataset 
+The collected dataset includes information about houses on sale in the Dublin area. Each house is an entry of the dataset: a mixed-type data comprising of numerical, categorical and textual data.
+
+The goal is to combine both numerical/categorical features and textual features to predict the house-price.
+
+The house price is determined by some factors like
+
+* location (area),
+* surface (size),
+* the number of bedrooms,
+* the number of bathrooms,
+* property type,
+* house-features (size of the windows, construction material).
+
+The physical attributes of the house such as the number of bedrooms, the number of bathrooms, the surface of the house, property type, and its location are information that is directly accessible from the dataset.
+Instead, the house-features can (sometimes only indirectly) be inferred from the house-description, house-facility and house-features.
+You can see a typical entry in the dataset hereafter
+
+```{r}
+data <- read.csv(file = 'train.csv',sep="," )
+data[10:28,3:17]#one of the entries, there are 17 columns, the first two columns are just ids
+```
+
+# Data Cleaning, Covariate selection and preprocessing
+We select some of the columns ('bathrooms','beds','surface') we will use as predictors for price
+```{r}
+datasel = data[c('bathrooms','beds','surface','price')]
+datasel = na.omit(datasel)# we remove all the rows including nan
+datasel
+```
+
+# Linear regression
+We now fit linear regression
+```{r}
+model = lm(price ~ bathrooms + beds + surface, data = datasel)
+summary(model)
+```
+Is this a good model? Can we use other columns in `data` to improve the model?
+Can we include polynomial and/or interaction terms to improve the model?
+Use the model selection approaches you learned in session 5 to find a better model.
+
+
+# Unseen data
+You can test the predictive performance of our best model on unseen data
+```{r}
+datatest <- read.csv(file = 'test.csv',sep="," )
+datatest[10:28,3:16]#one of the entries, there are 16 columns, the first two columns are just ids. The price column is not reported. You have to predict the price for all the entries in dataset
+```
+
+Prediction
+```{r}
+predictions <- predict(model,datatest)
+predictions[1:5]
+```
+these are the predicted prices for 5 houses in the dataset. You can save and submit your best predictions for our internal data science competition. This is the
+code:
+
+```{r}
+write.csv(predictions,"name_surname.csv")
+```
+We will use MAPE: Mean absolute percentage error, to evaluate the accuracy of
+your predictions.
